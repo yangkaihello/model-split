@@ -5,10 +5,5 @@
     "minimum-stability":"dev",
     "require": {
 	"php":"^7.0.12"
-    },
-    "autoload": {
-    	"psr-4": {
-	    "yangkai\\":"yangkai/"
-	}
     }
 }
