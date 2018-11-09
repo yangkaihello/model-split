@@ -1,5 +1,5 @@
 {
-    "name": "model/split",
+    "name": "split",
     "description": "yii model split",
     "keywords": ["yangkai", "yii", "split" , "model"],
     "type": "project",
@@ -9,7 +9,7 @@
     },
     "autoload": {
     	"psr-4": {
-	    "yangkai\\":"src/"
+	    "yangkai\\":"split/"
 	}
     }
 }
