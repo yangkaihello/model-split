@@ -1,5 +1,5 @@
 {
-    "name": "model-split",
+    "name": "model/split",
     "description": "yii model split",
     "keywords": ["yangkai", "yii", "split" , "model"],
     "minimum-stability":"dev",
