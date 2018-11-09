@@ -7,6 +7,11 @@ namespace yangkai\split{
 			echo 111;
 		}
 		
+		public function test1()
+		{
+			echo 222;
+		}
+		
 	}
 }
 
