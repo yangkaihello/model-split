@@ -2,6 +2,7 @@
     "name": "model/split",
     "description": "yii model split",
     "keywords": ["yangkai", "yii", "split" , "model"],
+    "type": "project",
     "minimum-stability":"dev",
     "require": {
 	"php":"^7.0.12"
