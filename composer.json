@@ -1,0 +1,14 @@
+{
+    "name": "model-split",
+    "description": "yii model split",
+    "keywords": ["yangkai", "yii", "split" , "model"],
+    "minimum-stability":"dev",
+    "require": {
+	"php":"^7.0.12"
+    },
+    "autoload": {
+    	"psr-4": {
+	    "yangkai\\":"src/"
+	}
+    }
+}
