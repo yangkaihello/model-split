@@ -15,11 +15,12 @@ use yii\helpers\StringHelper;
 abstract class BaseModel extends \yii\db\ActiveRecord
 {
 
-    public $_tableNum = 8;   //分表数量最好是 2 4 8 16
+    public $_tableNum = 32;   //分表数量最好是 2 4 8 16
     public $_createRuleField = [];    //分表规则
 
-    protected $_splitTable = [];    //分割的表格
-    protected $_existTable = [];    //已经存在的表格
+    private $_splitTable = [];    //分割的表格
+    private $_existTable = [];    //已经存在的表格
+    private $_allTable  = [];    //所有的数据库表作为验证
     protected static $_useTable = null;    //使用中的表格
 
     /**
@@ -72,6 +73,20 @@ abstract class BaseModel extends \yii\db\ActiveRecord
         return '{{%' . Inflector::camel2id(StringHelper::basename(get_called_class()), '_') . '}}';
     }
 
+    /**
+     * 还原多操作数据库表格
+     * @return $this
+     */
+    public function restoreModel()
+    {
+        self::$_useTable = null;
+        return $this;
+    }
+
+    /**
+     * 创建规则数据库
+     * @return $this
+     */
     public function createTableNum()
     {
         $dec = $this->_rule();
@@ -87,27 +102,34 @@ abstract class BaseModel extends \yii\db\ActiveRecord
         return $this;
     }
 
+    /**
+     * 验证是否存在表格
+     * @param $tableName
+     * @return bool
+     */
     public function hasTable($tableName)
     {
-        $tableName = $this->setTrueTableName($tableName);
+        $flag = false;
+        $tableName = $this->setTrueTableName($tableName,false);
 
-        $isTable = \Yii::$app->db->createCommand("SHOW TABLES like '{$tableName}'")->execute();
-        if($isTable)
+        if( empty($this->_allTable) )
         {
-            return true;
-        }else{
-            return false;
+            $allTable = \Yii::$app->db->createCommand("SHOW TABLES")->queryAll();
+            foreach($allTable as $table)
+            {
+                array_push($this->_allTable,array_pop($table));
+            }
         }
-    }
 
-    /**
-     * 还原多操作数据库表格
-     * @return $this
-     */
-    public function restoreModel()
-    {
-        self::$_useTable = null;
-        return $this;
+        foreach ($this->_allTable as $table)
+        {
+            if(trim($table) == trim($tableName))
+            {
+                $flag = true;break;
+            }
+        }
+
+        return $flag;
     }
 
     /**
@@ -128,9 +150,19 @@ abstract class BaseModel extends \yii\db\ActiveRecord
         }
 
         $rule = implode(".",$rule);
-        $dec = hexdec(md5($rule){0})%$this->_tableNum;
+        $dec = $this->_tableNum($rule)%$this->_tableNum;
 
         return $dec;
+    }
+
+    /**
+     * 获取一个表num
+     * @param $rule
+     * @return bool|string
+     */
+    private function _tableNum($rule)
+    {
+        return substr(crc32($rule),-3);
     }
 
     /**
