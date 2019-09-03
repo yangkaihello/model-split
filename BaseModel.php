@@ -23,8 +23,8 @@ abstract class BaseModel extends \yii\db\ActiveRecord
 
     private $_splitTable = [];    //分割的表格
     private $_existTable = [];    //已经存在的表格
-    private $_allTable  = [];    //所有的数据库表作为验证
-    protected static $_useTable = null;    //使用中的表格
+    private static $_allTable = [];    //所有的数据库表作为验证
+    private static $_useTable = null;    //使用中的表格
 
     /**
      * @throws \Exception
@@ -70,14 +70,7 @@ abstract class BaseModel extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        if( isset(self::$_useTable) )
-        {
-            $tableName = self::$_useTable;
-        }else{
-            $tableName = '{{%' . Inflector::camel2id(StringHelper::basename(get_called_class()), '_') . '}}';
-        }
-
-        return $tableName;
+        return static::getUseTable();
     }
 
     /**
@@ -95,7 +88,7 @@ abstract class BaseModel extends \yii\db\ActiveRecord
      */
     public function restoreModel()
     {
-        self::$_useTable = null;
+        static::setUseTable(null);
         return $this;
     }
 
@@ -113,7 +106,7 @@ abstract class BaseModel extends \yii\db\ActiveRecord
             $this->_existTable[$dec] = $this->setTableName($dec);
         }
 
-        self::$_useTable = $this->_existTable[$dec];
+        static::setUseTable($this->_existTable[$dec]);
 
         return $this;
     }
@@ -128,16 +121,16 @@ abstract class BaseModel extends \yii\db\ActiveRecord
         $flag = false;
         $tableName = $this->setTrueTableName($tableName,false);
 
-        if( empty($this->_allTable) )
+        if( empty(static::getAllTable()) )
         {
             $allTable = static::getDb()->createCommand("SHOW TABLES")->queryAll();
             foreach($allTable as $table)
             {
-                array_push($this->_allTable,array_pop($table));
+                static::setAllTable(array_pop($table));
             }
         }
 
-        foreach ($this->_allTable as $table)
+        foreach (static::getAllTable() as $table)
         {
             if(trim($table) == trim($tableName))
             {
@@ -168,7 +161,49 @@ abstract class BaseModel extends \yii\db\ActiveRecord
         return $dec;
     }
 
+    protected static function setUseTable($table)
+    {
+        return self::$_useTable[static::getDbCreateTableName()] = $table;
+    }
 
+    protected static function getUseTable()
+    {
+        return self::$_useTable[static::getDbCreateTableName()] ?? static::createTableName();
+    }
+
+    protected static function setAllTable($table)
+    {
+        self::$_allTable[static::getDbCreateTableName()][] = $table;
+    }
+
+    protected static function getAllTable()
+    {
+        return self::$_allTable[static::getDbCreateTableName()] ?? [];
+    }
+
+    /**
+     * 获取db.tablename 全名称
+     * @return string
+     */
+    public static function getDbCreateTableName()
+    {
+        return static::getDbName() . "." . static::createTableName();
+    }
+
+    /**
+     * 获取dbname 全名称
+     * @return string
+     */
+    public static function getDbName()
+    {
+       $arr = explode(";",explode(":",static::getDb()->dsn)[1]);
+       foreach ($arr as $value)
+       {
+           $value = explode("=",$value);
+           $param[$value[0]] = $value[1];
+       }
+       return $param['dbname'];
+    }
 
     /**
      * 拷贝表格
