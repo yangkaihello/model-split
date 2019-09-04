@@ -142,6 +142,30 @@ abstract class BaseModel extends \yii\db\ActiveRecord
     }
 
     /**
+     * 获取db.tablename 全名称
+     * @return string
+     */
+    public static function getDbCreateTableName()
+    {
+        return static::getDbName() . "." . static::createTableName();
+    }
+
+    /**
+     * 获取dbname 全名称
+     * @return string
+     */
+    public static function getDbName()
+    {
+        $arr = explode(";",explode(":",static::getDb()->dsn)[1]);
+        foreach ($arr as $value)
+        {
+            $value = explode("=",$value);
+            $param[$value[0]] = $value[1];
+        }
+        return $param['dbname'];
+    }
+
+    /**
      * 获取验证规则中的当前表格
      * @return int
      * @throws Exception
@@ -181,28 +205,15 @@ abstract class BaseModel extends \yii\db\ActiveRecord
         return self::$_allTable[static::getDbCreateTableName()] ?? [];
     }
 
-    /**
-     * 获取db.tablename 全名称
-     * @return string
-     */
-    public static function getDbCreateTableName()
+    protected function getTrueTableName($isPercent = true)
     {
-        return static::getDbName() . "." . static::createTableName();
-    }
-
-    /**
-     * 获取dbname 全名称
-     * @return string
-     */
-    public static function getDbName()
-    {
-       $arr = explode(";",explode(":",static::getDb()->dsn)[1]);
-       foreach ($arr as $value)
-       {
-           $value = explode("=",$value);
-           $param[$value[0]] = $value[1];
-       }
-       return $param['dbname'];
+        $tableName = static::tableName();
+        if(strpos(trim($tableName),'{{') == 0)
+        {
+            $arr = $isPercent ? ['{{','}}'] : ['{{','}}','%'];
+            $tableName = str_replace($arr,null,$tableName);
+        }
+        return $tableName;
     }
 
     /**
