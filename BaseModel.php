@@ -21,8 +21,9 @@ abstract class BaseModel extends \yii\db\ActiveRecord
     public $_createRuleField = [];    //分表规则
     public $_createRuleDate = 'Ym';
 
+    protected $_existTable = [];    //已经存在的表格
+
     private $_splitTable = [];    //分割的表格
-    private $_existTable = [];    //已经存在的表格
     private static $_allTable = [];    //所有的数据库表作为验证
     private static $_useTable = null;    //使用中的表格
 
